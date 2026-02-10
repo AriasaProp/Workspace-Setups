@@ -1,0 +1,13 @@
+/.cache
+/.local
+/.ssh
+/.termux
+/.vim
+/storage
+/workspace
+/.config
+.bash_history
+.gitconfig
+.python_history
+.viminfo
+.wget-hsts
