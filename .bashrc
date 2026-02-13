@@ -5,14 +5,17 @@ alias ll='ls -ha'
 cgit () {
   case $1 in
     up)
-      git add .
-      if [[ -n $2 ]]; then
-        local gitm="cGit upload";
-      else
-        local gitm="$2";
+      if ! git add .; then
+        echo "There is no changes to upload. Exit"
       fi
-      git commit -m "$gitm"
-      git push
+      if [[ -n $2 ]]; then
+        local gitm="$2";
+      else
+        local gitm="cGit upload";
+      fi
+      if ! git commit -m "$gitm" || ! git push; then
+        echo "Error on commit/push, details $?"
+      fi
       ;;
     * | help)
       echo "Custom git command sets"
@@ -29,8 +32,8 @@ cpkg () {
     list)
       echo "do nothing for now."
       ;;
-    update)
-      echo "Updating package lists..."
+    up)
+      echo "Update packages"
       if ! apt update -y; then
         echo "Error on update, details: $? .Checking dependencies..."
         if ! apt --fix-broken install; then
@@ -46,7 +49,10 @@ cpkg () {
         echo "Error on upgrade, details: $?"
         exit 1
       fi
-      echo "Package lists upgrade successfully!"
+      echo "Packages upgraded!"
+      ;;
+    clean)
+      echo "Clean packages cache"
       ;;
     * | help)
       echo "Custom packages manager"
@@ -55,7 +61,7 @@ cpkg () {
       echo " COMMAND   OPTION  Description"
       echo "help or *          show this message."
       echo "list               show list of installed packages."
-      echo "update             do update and upgrade all installed packages."
+      echo "up                 do update and upgrade all installed packages."
       echo "clean              free cache that generate or use by packages."
       ;;
   esac
