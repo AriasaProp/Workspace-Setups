@@ -3,35 +3,38 @@
 # file manager
 alias ll='ls -hAgG --time-style="+[%d/%m/%y %H:%M]"'
 
-cgit () {
+ckit () {
   case $1 in
-    up)
+    gup)
       if ! git add .; then
         echo "There is no changes to upload. Exit">&2
         exit 1
       fi
+      local gitm="cGit upload";
       if [[ -n $2 ]]; then
-        local gitm="$2";
-      else
-        local gitm="cGit upload";
+        gitm="$2";
       fi
       if ! git commit -m "$gitm" || ! git push; then
         echo "Error on commit/push, details $?">&2
       fi
       ;;
-    * | help)
-      echo "Custom git command sets"
-      echo "Usage: cgit <command> [option]"
-      echo ""
-      echo " COMMAND    Description"
-      echo "help or *   show this message."
-      echo "up          upload changes git."
+    mkcd)
+      local file
+      if [[ -z $3 ]]; then
+        echo "Filename: "
+        read -r file
+        if [[ -z $file ]]; then
+          echo "Filename cannot be null."
+          exit 1
+        fi
+      else
+        file=$3
+      fi
+      if ! cat "ext/code_template/$2.template" > $file; then
+        echo "Failed to create file program"
+      fi
       ;;
-  esac
-}
-cpkg () {
-  case $1 in
-    li)
+    pli)
       shift 1
       local p=""
       local h=10
@@ -57,17 +60,10 @@ cpkg () {
       done
       dpkg-query -f='${Installed-Size}\t${Package}\t${Status}\n' -W $p | sort -nr | awk -f ext/cpkg-li.awk -v N=$h | column -t
       ;;
-    up)
-      echo "Update packages"
-      if ! apt-get update -y; then
-        echo "Error on update, details: $? .Checking dependencies...">&2
-        if ! apt-get --fix-broken install; then
-          echo "Failed to fix broken dependencies. details: $?">&2
-          exit 1
-        elif ! apt-get update -y; then
-          echo "Error on update again, details: $?">&2
-          exit 1
-        fi
+    pup)
+      if ! apt-get update -y && ! apt-get --fix-broken install && ! apt-get update -y; then
+        echo "Error on update, details: $?">&2
+        exit 1
       fi
       echo "Packages updated!"
       if ! apt-get full-upgrade -y; then
@@ -77,55 +73,19 @@ cpkg () {
       echo "Packages upgraded!"
       ;;
     * | help)
-      echo "Custom packages manager"
-      echo "Usage: cpkg <command>"
+      echo "Custom kit command sets"
+      echo "Usage: ckit <command> [option]"
       echo ""
       echo " COMMAND       Description"
-      echo "help | *     show this message."
-      echo "li           show list of installed packages."
-      echo " -p <*>        list of installed packages by pattern."
-      echo " -h <0-9>      list of installed packages limit by number (default 10) line."
-      echo "up           do update and upgrade all installed packages."
-      ;;
-  esac
-}
-cuse () {
-  case $1 in
-    ram)
-      local type='p'
-      if [[ -n $2 ]]; then
-        type=$2
-      fi
-      while read -r /proc/meminfo line && [[ -n $line ]]; do
-        echo line
-      done
-      case $2 in
-        * | "" | 'p')
-          ;;
-        'u')
-          ;;
-      esac
-      echo $type
-      
-      ;;
-    * | help)
-      echo "Custom memory view command sets"
-      echo "Usage: cmem <command> [option]"
-      echo ""
-      echo " COMMAND    Description"
-      echo "help or *   show this message."
-      echo "ram         show current usage of RAM."
-      echo "  p           show as percentage."
-      echo "  u           show as nearest memory byte unit."
+      echo "help | *       show this message."
+      echo "gup            upload changes git."
+      echo "pli            show list of installed packages."
+      echo "  -p <*>          list of installed packages by pattern."
+      echo "  -h <0-9>        list of installed packages limit by number (default 10) line."
+      echo "pup            do update and upgrade all installed packages."
+      echo "mkcd <l> <f>   make 'Hello World' template base <l> programming language."
       ;;
   esac
 }
 
-wellcome_start() {
-  date "+%B %d, %Y"
-  echo
-  echo "To Do : "
-  echo " Write .basrc"
-}
-
-wellcome_start
+date "+%d/%m/%Y"
